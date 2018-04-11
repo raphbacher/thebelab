@@ -134,6 +134,11 @@ function renderCell(element, options) {
       .text("run")
       .click(execute)
   );
+  $cell.append(
+    $("<button class='thebelab-button thebelab-reset-button'>")
+      .text("reset")
+      .click(reset)
+  );
   let kernelResolve, kernelReject;
   let kernelPromise = new Promise((resolve, reject) => {
     kernelResolve = resolve;
@@ -164,12 +169,23 @@ function renderCell(element, options) {
     });
     return false;
   }
+  //get initial code of cell  
+  const ref_code = $element.data("ref_code") || "";
+  
+  function reset() {
+    cm.setValue($ref_code);
+    
+    outputArea.model.clear();
+    return false;
+  }
 
   let theDiv = document.createElement("div");
   $cell.append(theDiv);
   Widget.attach(outputArea, theDiv);
 
   const mode = $element.data("language") || "python3";
+  
+  
   let cm = new CodeMirror($cm_element[0], {
     value: source,
     mode: mode,
