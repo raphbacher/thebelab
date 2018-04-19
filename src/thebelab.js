@@ -139,6 +139,21 @@ function renderCell(element, options) {
       .text("reset")
       .click(reset)
   );
+  $cell.append(
+    $("<button class='thebelab-button thebelab-hint-button'>")
+      .text("hint")
+      .click(hint)
+  );
+  $cell.append(
+    $("<button class='thebelab-button thebelab-sol-button'>")
+      .text("show solution")
+      .click(show_solution)
+  );
+  $cell.append(
+    $("<button class='thebelab-button thebelab-submit-button'>")
+      .text("Submit")
+      .click(submit)
+  );
   let kernelResolve, kernelReject;
   let kernelPromise = new Promise((resolve, reject) => {
     kernelResolve = resolve;
@@ -171,6 +186,8 @@ function renderCell(element, options) {
   }
   //get initial code of cell  
   const ref_code = $element.data("ref_code") || "";
+  const solution = $element.data("sol") || "";
+  const test_to_apply = $element.data("tests") || "";
   
   function reset() {
     cm.setValue($ref_code);
@@ -178,7 +195,34 @@ function renderCell(element, options) {
     outputArea.model.clear();
     return false;
   }
-
+  function show_solution() {
+    cm.setValue(solution);
+    
+    outputArea.model.clear();
+    return false;
+  }
+  function hint() {
+    alert()
+    return false;
+  }
+  function submit() {
+    let kernel = $cell.data("kernel");
+    let code = cm.getValue()+test_to_apply;
+    if (!kernel) {
+      console.error("No kernel connected");
+      outputArea.model.clear();
+      outputArea.model.add({
+        output_type: "stream",
+        name: "stdout",
+        text: "Waiting for kernel...",
+      });
+      events.trigger("request-kernel");
+    }
+    kernelPromise.then(kernel => {
+      outputArea.future = kernel.requestExecute({ code: code });
+    });
+    return false;
+  }
   let theDiv = document.createElement("div");
   $cell.append(theDiv);
   Widget.attach(outputArea, theDiv);
